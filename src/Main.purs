@@ -1,12 +1,29 @@
 module Main where
 
-import Prelude (Unit)
+import Prelude
 import Effect (Effect)
 import Effect.Console (log)
-import Data.Maybe
-{-- import Data.EuclidianRing (mod) --}
+import Data.Maybe (Maybe(..))
+import Data.Array (range, index)
+import Data.Show
 
 data NoteLetter = A | B | C | D | E | F | G
+
+instance showNoteLetter :: Show NoteLetter
+  where
+    show A = "A"
+    show B = "B"
+    show C = "C"
+    show D = "D"
+    show E = "E"
+    show F = "F"
+    show G = "G"
+
+notesOrdered :: Array NoteLetter
+notesOrdered = [A, B, C, D, E, F, G]
+
+noteLetter :: Int -> Maybe NoteLetter
+noteLetter i = index notesOrdered i
 
 data NoteMod = Sharp | Flat
 
@@ -15,19 +32,18 @@ data Note = Note NoteLetter (Maybe NoteMod)
 a :: Note
 a = Note A (Just Sharp)
 
-{-- bottom = let x = x in x --}
+fifth :: Int -> Int
+fifth i = (2 + i * 4) `mod` 7
 
-{-- shift :: Array a -> Array a --}
-{-- shift = bottom --}
+--| sharps i is the sharped notes for fifth i
+sharps :: Int -> Array Int
+sharps 0 = []
+sharps i = (\i -> fifth ((6 + i) `mod` 7)) <$> range 0 (i-1) 
 
-{-- fifthAsc :: Int -> Int --}
-{-- fifthAsc i = (6 + i * 5) `mod` 7 --}
-
-{-- G D A E B F C --}
-{-- F C G D A E B --}
-
-{-- F B E A D G C --}
-{-- B E A D G C F --}
+--| flats i are the flatted notes for fifth (-i)
+flats :: Int -> Array Int
+flats 0 = []
+flats i = (\i -> fifth ((5 - i) `mod` 7)) <$> range 0 (i-1) 
 
 data ChordGenus = Minor | Major | Dim | Aug
 
