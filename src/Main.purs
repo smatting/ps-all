@@ -8,6 +8,7 @@ import Data.Array (range, index)
 import Data.Show
 import Data.Foldable (elem)
 import Data.Tuple
+import Data.String.Common (toLower)
 
 data NoteLetter = A | B | C | D | E | F | G
 
@@ -39,9 +40,6 @@ instance showNote :: Show Note
         showMod Sharp = "#"
         showMod Flat = "b"
 
-a :: Note
-a = Note A (Just Sharp)
-
 fifth :: Int -> Int
 fifth i = (2 + i * 4) `mod` 7
 
@@ -63,14 +61,51 @@ scale n =
         else
           Tuple (sharps n) Sharp
 
-    in flip map (range 0 7) $ (\i ->
+    in flip map (range 0 6) $ (\i ->
       let noteIdx = (fifth n + i) `mod` 7
         in Note (noteLetter noteIdx) (if noteIdx `elem` modIdxs then (Just modSymb) else Nothing)
           )
 
-data ChordGenus = Minor | Major | Dim | Aug
+data ChordGenus = MajorChord | MinorChord | DiminishedChord | AugmentedChor
 
-data Foo = Bar | Sadg { meh :: String }
+data Chord = Chord {
+    chordBase :: Note,
+    chordGenus :: ChordGenus
+  }
+
+data Roman = Roman Int ChordGenus
+
+instance showRoman :: Show Roman
+  where
+    show (Roman k genus) =
+      let caseMod = case genus of
+            MajorChord -> identity
+            MinorChord -> toLower
+            DiminishedChord -> toLower
+            AugmentedChor -> identity
+      in
+        caseMod (roman k) <> showChordGenus genus
+
+showChordGenus :: ChordGenus -> String
+showChordGenus MajorChord = ""
+showChordGenus MinorChord = ""
+showChordGenus DiminishedChord = "o"
+showChordGenus AugmentedChor = "+"
+
+roman :: Int -> String
+roman 1 = "I"
+roman 2 = "II"
+roman 3 = "III"
+roman 4 = "IV"
+roman 5 = "V"
+roman 6 = "VI"
+roman 7 = "VII"
+roman _ = "?"
+
+
+{-- analyzeScale :: Int -> Array (Tuple Chord Roman) --}
+{-- analyzeScale n = --}
+
 
 main :: Effect Unit
 main = do
