@@ -4,7 +4,7 @@ import Prelude
 import Effect (Effect)
 import Effect.Console (log)
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
-import Data.Array (range, index)
+import Data.Array (range, index, (!!))
 import Data.Show
 import Data.Foldable (elem)
 import Data.Tuple
@@ -66,12 +66,20 @@ scale n =
         in Note (noteLetter noteIdx) (if noteIdx `elem` modIdxs then (Just modSymb) else Nothing)
           )
 
+getNote :: Array Note -> Int -> Note
+getNote notes i = fromMaybe (Note C Nothing) (notes !! i)
+
 data ChordGenus = MajorChord | MinorChord | DiminishedChord | AugmentedChor
 
 data Chord = Chord {
     chordBase :: Note,
     chordGenus :: ChordGenus
   }
+
+instance showChord :: Show Chord
+  where
+    show (Chord chord) =
+        show (chord.chordBase) <> showChordGenus chord.chordGenus
 
 data Roman = Roman Int ChordGenus
 
@@ -88,8 +96,9 @@ instance showRoman :: Show Roman
 
 showChordGenus :: ChordGenus -> String
 showChordGenus MajorChord = ""
-showChordGenus MinorChord = ""
-showChordGenus DiminishedChord = "o"
+showChordGenus MinorChord = "m"
+showChordGenus DiminishedChord = "°"
+  
 showChordGenus AugmentedChor = "+"
 
 roman :: Int -> String
@@ -102,10 +111,19 @@ roman 6 = "VI"
 roman 7 = "VII"
 roman _ = "?"
 
-
-{-- analyzeScale :: Int -> Array (Tuple Chord Roman) --}
-{-- analyzeScale n = --}
-
+majorScaleChords :: Int -> Array Chord
+majorScaleChords n =
+  let s = scale n
+      note step genus =
+        Chord {chordBase: (getNote s (step - 1)), chordGenus: genus}
+   in [note 1 MajorChord,
+       note 2 MinorChord,
+       note 3 MinorChord,
+       note 4 MajorChord,
+       note 5 MajorChord,
+       note 6 MinorChord,
+       note 7 DiminishedChord
+      ]
 
 main :: Effect Unit
 main = do
