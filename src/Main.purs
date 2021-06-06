@@ -28,17 +28,19 @@ notesOrdered = [A, B, C, D, E, F, G]
 noteLetter :: Int -> NoteLetter
 noteLetter i = fromMaybe A (index notesOrdered (i `mod` 7))
 
-data NoteMod = Sharp | Flat
+data Accidental = Sharp | Flat
 
-data Note = Note NoteLetter (Maybe NoteMod)
+instance showAccidental :: Show Accidental
+  where
+    show Sharp = "#"
+    show Flat = "b"
+
+data Note = Note NoteLetter (Maybe Accidental)
 
 instance showNote :: Show Note
   where
     show (Note nl mMod) =
-      show nl <> maybe "" showMod mMod
-      where
-        showMod Sharp = "#"
-        showMod Flat = "b"
+      show nl <> maybe "" show mMod
 
 fifth :: Int -> Int
 fifth i = (2 + i * 4) `mod` 7
@@ -81,24 +83,27 @@ instance showChord :: Show Chord
     show (Chord chord) =
         show (chord.chordBase) <> showChordGenus chord.chordGenus
 
-data Roman = Roman Int ChordGenus
+data RomanAccidental = RomanAccidental Int Accidental
+
+instance showRomanAccidental :: Show RomanAccidental
+  where
+    show (RomanAccidental n acc) = show
+
+-- Roman numerals https://en.wikipedia.org/wiki/Roman_numeral_analysis
+data Roman = Roman Int (Array RomanAccidental)
 
 instance showRoman :: Show Roman
   where
-    show (Roman k genus) =
-      let caseMod = case genus of
-            MajorChord -> identity
-            MinorChord -> toLower
-            DiminishedChord -> toLower
-            AugmentedChor -> identity
+    show (Roman k accidentals) =
+      let
+        showAccidentals [] = ""
       in
-        caseMod (roman k) <> showChordGenus genus
+      (roman k) <> showAccidentals accidentals
 
 showChordGenus :: ChordGenus -> String
 showChordGenus MajorChord = ""
 showChordGenus MinorChord = "m"
 showChordGenus DiminishedChord = "°"
-  
 showChordGenus AugmentedChor = "+"
 
 roman :: Int -> String
@@ -111,18 +116,18 @@ roman 6 = "VI"
 roman 7 = "VII"
 roman _ = "?"
 
-majorScaleChords :: Int -> Array Chord
+majorScaleChords :: Int -> Array (Tuple Chord Roman)
 majorScaleChords n =
   let s = scale n
       note step genus =
         Chord {chordBase: (getNote s (step - 1)), chordGenus: genus}
-   in [note 1 MajorChord,
-       note 2 MinorChord,
-       note 3 MinorChord,
-       note 4 MajorChord,
-       note 5 MajorChord,
-       note 6 MinorChord,
-       note 7 DiminishedChord
+   in [Tuple (note 1 MajorChord) (Roman 1 [])
+   --     note 2 MinorChord,
+   --     note 3 MinorChord,
+   --     note 4 MajorChord,
+   --     note 5 MajorChord,
+   --     note 6 MinorChord,
+   --     note 7 DiminishedChord
       ]
 
 main :: Effect Unit
